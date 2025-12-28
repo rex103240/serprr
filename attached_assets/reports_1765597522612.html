@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    /* Interactive Card Styling */
+    .interactive-card {
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+    .interactive-card::after {
+        content: "View Details →";
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--accent);
+        opacity: 0;
+        transform: translateX(10px);
+        transition: all 0.2s ease;
+    }
+    .interactive-card:hover::after {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    .interactive-card:hover {
+        border-color: var(--accent);
+        transform: translateY(-4px);
+    }
+    
+    /* Scrollable Modal List */
+    .modal-list-container {
+        max-height: 400px;
+        overflow-y: auto;
+        margin-top: 15px;
+        border: 1px solid #e5e5ea;
+        border-radius: 12px;
+    }
+    .modal-table { width: 100%; border-collapse: collapse; }
+    .modal-table th {
+        position: sticky; top: 0; background: #f5f5f7; z-index: 10;
+        padding: 12px 15px; font-size: 11px; text-transform: uppercase; color: #86868b;
+        border-bottom: 1px solid #d2d2d7; text-align: left;
+    }
+    .modal-table td { padding: 12px 15px; border-bottom: 1px solid #e5e5ea; font-size: 13px; }
+    .modal-table tr:last-child td { border-bottom: none; }
+</style>
+
+<div class="header">
+    <h1>Analytics</h1>
+</div>
+
+<div class="stats-grid">
+    <div class="card">
+        <h3>Cash Collected (This Month)</h3>
+        <div class="number" style="color: var(--success);">₹{{ cash_collection }}</div>
+    </div>
+
+    <div class="card interactive-card" onclick="openModal('modalChurn')">
+        <h3>Churn Rate (Inactive)</h3>
+        <div class="number" style="color: {{ 'var(--danger)' if churn_rate > 10 else 'var(--text-main)' }};">{{ churn_rate }}%</div>
+    </div>
+
+    <div class="card interactive-card" onclick="openModal('modalOverdue')">
+        <h3>Overdue Revenue (At Risk)</h3>
+        <div class="number" style="color: var(--warning);">₹{{ overdue_value }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <h3 style="margin-bottom: 25px;">Membership Distribution</h3>
+    <div class="dist-grid">
+        {% for plan, count in plan_dist %}
+        <div class="dist-item">
+            <div class="dist-label">{{ plan }}</div>
+            <div class="dist-count">{{ count }}</div>
+            <div class="progress-bg">
+                <div class="progress-fill bar-color-{{ loop.index0 % 6 }}" style="width: {{ (count / total_members * 100) if total_members > 0 else 0 }}%"></div>
+            </div>
+        </div>
+        {% else %}
+        <p style="color:#86868b; text-align:center;">No data to display.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<div id="modalChurn" class="modal">
+    <div class="modal-content" style="width: 500px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2 style="margin:0;">Inactive Members</h2>
+            <button onclick="closeModal('modalChurn')" style="border:none; background:none; font-size:24px; cursor:pointer; color:#86868b;">&times;</button>
+        </div>
+        <div class="modal-list-container">
+            <table class="modal-table">
+                <thead><tr><th>Name</th><th>Phone</th><th>Plan</th></tr></thead>
+                <tbody>
+                    {% for m in inactive_members_list %}
+                    <tr>
+                        <td style="font-weight:600;">{{ m['name'] }}</td>
+                        <td>{{ m['phone'] }}</td>
+                        <td>{{ m['plan_name'] }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3" style="text-align:center; padding:20px;">No inactive members.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="modalOverdue" class="modal">
+    <div class="modal-content" style="width: 550px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2 style="margin:0;">Overdue Payments</h2>
+            <button onclick="closeModal('modalOverdue')" style="border:none; background:none; font-size:24px; cursor:pointer; color:#86868b;">&times;</button>
+        </div>
+        <p style="color:#86868b; font-size:13px; margin-top:5px;">These members are marked Active but have passed their due date.</p>
+        <div class="modal-list-container">
+            <table class="modal-table">
+                <thead><tr><th>Name</th><th>Plan</th><th>Overdue By</th><th>Value</th></tr></thead>
+                <tbody>
+                    {% for m in overdue_list %}
+                    <tr>
+                        <td style="font-weight:600;">{{ m['name'] }}<br><span style="font-weight:400; color:#888; font-size:11px;">{{ m['phone'] }}</span></td>
+                        <td>{{ m['plan_name'] }}</td>
+                        <td style="color:var(--danger); font-weight:600;">{{ m['days_overdue'] }} Days</td>
+                        <td>₹{{ m['amount'] }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4" style="text-align:center; padding:20px;">No overdue payments found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal')) { event.target.style.display = "none"; }
+    }
+</script>
+{% endblock %}

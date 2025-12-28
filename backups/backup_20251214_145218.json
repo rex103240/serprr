@@ -1,0 +1,435 @@
+{
+  "timestamp": "20251214_145218",
+  "plans": [
+    {
+      "id": 1,
+      "name": "Monthly Standard",
+      "price": 1500,
+      "duration_days": 30,
+      "description": null,
+      "is_active": true
+    },
+    {
+      "id": 2,
+      "name": "Quarterly Saver",
+      "price": 4000,
+      "duration_days": 90,
+      "description": null,
+      "is_active": true
+    },
+    {
+      "id": 3,
+      "name": "Annual Pro",
+      "price": 12000,
+      "duration_days": 365,
+      "description": null,
+      "is_active": true
+    },
+    {
+      "id": 4,
+      "name": "Daily Pass",
+      "price": 200,
+      "duration_days": 1,
+      "description": null,
+      "is_active": true
+    },
+    {
+      "id": 5,
+      "name": "Delixe",
+      "price": 100,
+      "duration_days": 90,
+      "description": "",
+      "is_active": true
+    },
+    {
+      "id": 6,
+      "name": "365 Gold ",
+      "price": 12000,
+      "duration_days": 365,
+      "description": "",
+      "is_active": true
+    }
+  ],
+  "members": [
+    {
+      "id": 1841,
+      "name": "joe",
+      "phone": "456543322",
+      "email": "joe@mail.com",
+      "address": "",
+      "date_of_birth": "2010-12-12",
+      "gender": "Male",
+      "plan_id": 1,
+      "plan_price_at_join": 1500,
+      "join_date": "2025-12-14",
+      "expiry_date": "2026-01-13",
+      "status": "Active",
+      "emergency_contact_name": "",
+      "emergency_contact_phone": "",
+      "emergency_contact_relation": "",
+      "notes": ""
+    },
+    {
+      "id": 2112,
+      "name": "aew",
+      "phone": "4545454545",
+      "email": "rex@gmil.com",
+      "address": "",
+      "date_of_birth": "2005-12-12",
+      "gender": "Male",
+      "plan_id": 1,
+      "plan_price_at_join": 1500,
+      "join_date": "2025-11-14",
+      "expiry_date": "2025-12-14",
+      "status": "Active",
+      "emergency_contact_name": "1",
+      "emergency_contact_phone": "1",
+      "emergency_contact_relation": "1",
+      "notes": ""
+    },
+    {
+      "id": 2475,
+      "name": "Meena Tyagi",
+      "phone": "09856576562",
+      "email": "meena.tyagi@example.com",
+      "address": "",
+      "date_of_birth": "2001-10-01",
+      "gender": "Female",
+      "plan_id": 3,
+      "plan_price_at_join": 12000,
+      "join_date": "2025-11-10",
+      "expiry_date": "2026-12-14",
+      "status": "Active",
+      "emergency_contact_name": "Meena Tyagi",
+      "emergency_contact_phone": "09856576562",
+      "emergency_contact_relation": "",
+      "notes": ""
+    },
+    {
+      "id": 6244,
+      "name": "prakash singh",
+      "phone": "07897891234",
+      "email": "prakash@gmail.com",
+      "address": "",
+      "date_of_birth": null,
+      "gender": "Male",
+      "plan_id": 1,
+      "plan_price_at_join": 1500,
+      "join_date": "2025-11-13",
+      "expiry_date": "2025-12-13",
+      "status": "Active",
+      "emergency_contact_name": "prakash singh",
+      "emergency_contact_phone": "07897891234",
+      "emergency_contact_relation": "",
+      "notes": ""
+    },
+    {
+      "id": 6542,
+      "name": "Prakash Choudhary",
+      "phone": "4564564562",
+      "email": "rex@gmail.com",
+      "address": "",
+      "date_of_birth": "2005-10-31",
+      "gender": "Male",
+      "plan_id": 5,
+      "plan_price_at_join": 100,
+      "join_date": "2025-12-13",
+      "expiry_date": "2026-04-12",
+      "status": "Active",
+      "emergency_contact_name": "",
+      "emergency_contact_phone": "",
+      "emergency_contact_relation": "",
+      "notes": ""
+    },
+    {
+      "id": 6566,
+      "name": "rajesh gehlot",
+      "phone": "01234567890",
+      "email": "rajesh@gmail.com",
+      "address": "rajesh@gmail.com",
+      "date_of_birth": "1252-12-21",
+      "gender": "Male",
+      "plan_id": 1,
+      "plan_price_at_join": 1500,
+      "join_date": "2025-11-14",
+      "expiry_date": "2025-12-14",
+      "status": "Active",
+      "emergency_contact_name": "rajesh gehlot",
+      "emergency_contact_phone": "01234567890",
+      "emergency_contact_relation": "",
+      "notes": ""
+    },
+    {
+      "id": 6666,
+      "name": "Uday Oza",
+      "phone": "07886449022",
+      "email": "uday.oza@example.com",
+      "address": "",
+      "date_of_birth": "2014-10-31",
+      "gender": "Male",
+      "plan_id": 1,
+      "plan_price_at_join": 1500,
+      "join_date": "2025-11-14",
+      "expiry_date": "2025-12-14",
+      "status": "Active",
+      "emergency_contact_name": "Uday Oza",
+      "emergency_contact_phone": "07886449022",
+      "emergency_contact_relation": "",
+      "notes": ""
+    },
+    {
+      "id": 8189,
+      "name": "Rajesh Kaushik",
+      "phone": "09763704224",
+      "email": "rajesh.kaushik@example.com",
+      "address": "",
+      "date_of_birth": "2005-11-12",
+      "gender": "Female",
+      "plan_id": 2,
+      "plan_price_at_join": 4000,
+      "join_date": "2025-11-12",
+      "expiry_date": "2026-03-14",
+      "status": "Active",
+      "emergency_contact_name": "Rajesh Kaushik",
+      "emergency_contact_phone": "09763704224",
+      "emergency_contact_relation": "",
+      "notes": ""
+    }
+  ],
+  "staff": [
+    {
+      "id": 1,
+      "name": "sarah connor",
+      "phone": "678901234",
+      "email": "tread@gmail.com",
+      "role": "Manager",
+      "specialization": "",
+      "salary": 10000,
+      "join_date": "2025-12-14",
+      "status": "Active",
+      "address": "",
+      "notes": ""
+    }
+  ],
+  "equipment": [
+    {
+      "id": 4,
+      "name": "DUMBELLS 2kg",
+      "category": "Strength",
+      "brand": "bodlyline",
+      "model": "2011",
+      "purchase_date": "2025-12-14",
+      "purchase_price": 500,
+      "warranty_expiry": "2027-12-20",
+      "status": "Working",
+      "location": "main floor L-1 ",
+      "notes": ""
+    },
+    {
+      "id": 5,
+      "name": "DUMBELLS 2kg",
+      "category": "Strength",
+      "brand": "bodlyline",
+      "model": "2011",
+      "purchase_date": "2025-12-14",
+      "purchase_price": 2000,
+      "warranty_expiry": "2027-12-20",
+      "status": "Working",
+      "location": "main floor L-1 ",
+      "notes": ""
+    }
+  ],
+  "transactions": [
+    {
+      "id": 1,
+      "member_id": 6542,
+      "plan_id": 1,
+      "amount": 1500,
+      "payment_method": "Cash",
+      "transaction_type": "New Membership",
+      "date": "2025-12-13 12:56:52.943844",
+      "invoice_number": "INV-20251213182652",
+      "notes": null
+    },
+    {
+      "id": 2,
+      "member_id": 6542,
+      "plan_id": 5,
+      "amount": 100,
+      "payment_method": "Cash",
+      "transaction_type": "Renewal",
+      "date": "2025-12-13 13:50:03.156576",
+      "invoice_number": "INV-20251213192003",
+      "notes": null
+    },
+    {
+      "id": 3,
+      "member_id": 6566,
+      "plan_id": 1,
+      "amount": 1500,
+      "payment_method": "Cash",
+      "transaction_type": "New Membership",
+      "date": "2025-12-13 17:21:08.155460",
+      "invoice_number": "INV-20251213225108",
+      "notes": null
+    },
+    {
+      "id": 4,
+      "member_id": 6666,
+      "plan_id": 1,
+      "amount": 1500,
+      "payment_method": "Cash",
+      "transaction_type": "New Membership",
+      "date": "2025-12-14 06:38:59.014182",
+      "invoice_number": "INV-20251214120859",
+      "notes": null
+    },
+    {
+      "id": 5,
+      "member_id": 6244,
+      "plan_id": 1,
+      "amount": 1500,
+      "payment_method": "Cash",
+      "transaction_type": "New Membership",
+      "date": "2025-12-14 06:44:10.657248",
+      "invoice_number": "INV-20251214121410",
+      "notes": null
+    },
+    {
+      "id": 6,
+      "member_id": 2475,
+      "plan_id": 1,
+      "amount": 1500,
+      "payment_method": "Cash",
+      "transaction_type": "New Membership",
+      "date": "2025-12-14 06:45:35.131392",
+      "invoice_number": "INV-20251214121535",
+      "notes": null
+    },
+    {
+      "id": 7,
+      "member_id": 8189,
+      "plan_id": 1,
+      "amount": 1500,
+      "payment_method": "Cash",
+      "transaction_type": "New Membership",
+      "date": "2025-12-14 06:48:43.673946",
+      "invoice_number": "INV-20251214121843",
+      "notes": null
+    },
+    {
+      "id": 8,
+      "member_id": 2112,
+      "plan_id": 1,
+      "amount": 1500,
+      "payment_method": "Cash",
+      "transaction_type": "New Membership",
+      "date": "2025-12-14 06:53:33.495869",
+      "invoice_number": "INV-20251214122333",
+      "notes": null
+    },
+    {
+      "id": 9,
+      "member_id": 8189,
+      "plan_id": 2,
+      "amount": 4000,
+      "payment_method": "Cash",
+      "transaction_type": "Renewal",
+      "date": "2025-12-14 07:06:02.197536",
+      "invoice_number": "INV-20251214123602",
+      "notes": null
+    },
+    {
+      "id": 10,
+      "member_id": 1841,
+      "plan_id": 1,
+      "amount": 1500,
+      "payment_method": "Cash",
+      "transaction_type": "New Membership",
+      "date": "2025-12-14 08:35:27.482135",
+      "invoice_number": "INV-20251214140527",
+      "notes": null
+    },
+    {
+      "id": 11,
+      "member_id": 2475,
+      "plan_id": 3,
+      "amount": 12000,
+      "payment_method": "Cash",
+      "transaction_type": "Renewal",
+      "date": "2025-12-14 09:06:40.683173",
+      "invoice_number": "INV-20251214143640",
+      "notes": null
+    }
+  ],
+  "expenses": [
+    {
+      "id": 1,
+      "category": "Equipment",
+      "amount": 2000,
+      "description": "Purchase: DUMBELLS 2kg (bodlyline)",
+      "date": "2025-12-14 00:00:00",
+      "payment_method": "Cash"
+    },
+    {
+      "id": 2,
+      "category": "Salary",
+      "amount": 10000,
+      "description": "Salary Payment: sarah connor (December)",
+      "date": "2025-12-14 00:00:00",
+      "payment_method": "Transfer"
+    }
+  ],
+  "attendance": [
+    {
+      "id": 1,
+      "member_id": 6542,
+      "timestamp": "2025-12-13 12:57:34.399103",
+      "check_type": "in"
+    },
+    {
+      "id": 2,
+      "member_id": 6566,
+      "timestamp": "2025-12-14 06:24:23.090895",
+      "check_type": "in"
+    },
+    {
+      "id": 3,
+      "member_id": 6666,
+      "timestamp": "2025-12-14 06:40:41.571797",
+      "check_type": "in"
+    },
+    {
+      "id": 4,
+      "member_id": 6542,
+      "timestamp": "2025-12-14 06:40:55.846157",
+      "check_type": "in"
+    },
+    {
+      "id": 5,
+      "member_id": 6244,
+      "timestamp": "2025-12-14 06:44:21.480053",
+      "check_type": "in"
+    },
+    {
+      "id": 6,
+      "member_id": 2475,
+      "timestamp": "2025-12-14 06:45:40.806109",
+      "check_type": "in"
+    },
+    {
+      "id": 7,
+      "member_id": 8189,
+      "timestamp": "2025-12-14 06:48:54.023603",
+      "check_type": "in"
+    },
+    {
+      "id": 8,
+      "member_id": 2112,
+      "timestamp": "2025-12-14 06:53:39.822726",
+      "check_type": "in"
+    }
+  ],
+  "measurements": [],
+  "maintenance_logs": []
+}

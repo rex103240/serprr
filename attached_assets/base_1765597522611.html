@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>IronLifter Gym</title>
+    <style>
+        :root { 
+            --primary: #1c1c1e; 
+            --sidebar: #000000; 
+            --accent: #007AFF; 
+            --bg: #F5F5F7; 
+            --card-bg: #FFFFFF; 
+            --text-main: #1d1d1f; 
+            --text-secondary: #86868b; 
+            --danger: #FF3B30; 
+            --success: #34C759; 
+            --warning: #FF9500; 
+            --border: #d2d2d7; 
+        }
+        
+        body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif; margin: 0; background-color: var(--bg); color: var(--text-main); display: flex; height: 100vh; -webkit-font-smoothing: antialiased; }
+        
+        /* Sidebar */
+        .sidebar { width: 260px; background-color: var(--sidebar); color: white; display: flex; flex-direction: column; flex-shrink: 0; transition: transform 0.3s ease; }
+        .sidebar h2 { text-align: center; padding: 35px 0; margin: 0; font-size: 20px; font-weight: 700; letter-spacing: 0.5px; opacity: 0.9; }
+        .nav-links { list-style: none; padding: 20px 10px; margin: 0; }
+        .nav-links li a { display: block; padding: 14px 20px; color: #86868b; text-decoration: none; transition: 0.2s ease; font-size: 14px; font-weight: 500; border-radius: 10px; margin-bottom: 5px; }
+        .nav-links li a:hover { color: white; background-color: #1c1c1e; }
+        .nav-links li a.active { color: white; background-color: #1c1c1e; font-weight: 600; }
+        
+        /* Logout Button */
+        .logout-link { margin-top: auto; margin-bottom: 30px; color: var(--danger) !important; font-weight: 600 !important; }
+
+        /* Main Content */
+        .main-content { flex: 1; padding: 40px 50px; overflow-y: auto; height: 100vh; box-sizing: border-box; }
+        
+        /* Headers & Cards */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px; }
+        h1 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 25px; margin-bottom: 35px; }
+        
+        .card { 
+            background: var(--card-bg); 
+            padding: 30px; 
+            border-radius: 20px; 
+            box-shadow: 0 4px 24px rgba(0,0,0,0.04); 
+            border: 1px solid rgba(0,0,0,0.04); 
+            transition: transform 0.3s ease, box-shadow 0.3s ease; 
+        }
+        
+        .card h3 { margin: 0 0 15px 0; color: var(--text-secondary); font-size: 12px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
+        .card .number { font-size: 36px; font-weight: 700; color: var(--text-main); }
+
+        /* Interactive Card Hover Effects */
+        .interactive-card { cursor: pointer; position: relative; overflow: hidden; }
+        .interactive-card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+        
+        /* Tables */
+        table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        th { text-align: left; padding: 15px 20px; color: var(--text-secondary); font-size: 12px; font-weight: 600; text-transform: uppercase; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--card-bg); }
+        td { padding: 18px 20px; font-size: 14px; border-bottom: 1px solid #e5e5ea; color: var(--text-main); vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+
+        /* Buttons & Inputs */
+        .btn { padding: 10px 20px; border: none; border-radius: 18px; cursor: pointer; text-decoration: none; display: inline-block; font-size: 13px; font-weight: 600; transition: all 0.2s; }
+        .btn-primary { background-color: var(--accent); color: white; }
+        .btn-secondary { background-color: #e5e5ea; color: var(--text-main); }
+        .btn-success { background-color: var(--success); color: white; }
+        .btn-danger { background-color: #fff0f0; color: var(--danger); }
+        .btn:hover { opacity: 0.9; transform: scale(1.02); }
+        .btn-sm { padding: 6px 14px; font-size: 12px; border-radius: 14px; margin-right: 5px; }
+
+        input, select { padding: 14px 16px; border: 1px solid #d2d2d7; border-radius: 12px; width: 100%; box-sizing: border-box; margin-bottom: 20px; font-size: 15px; background: #fff; transition: border 0.2s; }
+        input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(0,122,255,0.1); }
+
+        /* Toast Notifications */
+        #premium-toast-container { position: fixed; top: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .premium-toast { pointer-events: auto; color: white; padding: 16px 24px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 12px; min-width: 300px; animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; backdrop-filter: blur(10px); }
+        .toast-success { background: linear-gradient(135deg, #34C759, #30B753); }
+        .toast-error { background: linear-gradient(135deg, #FF3B30, #D63329); }
+        .toast-info { background: linear-gradient(135deg, #007AFF, #0062CC); }
+        @keyframes slideIn { from { transform: translateY(-20px) scale(0.95); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+
+    </style>
+</head>
+<body>
+    {% if not kiosk_mode %}
+    <div class="sidebar">
+        <h2>IronLifter v9.0</h2>
+        <ul class="nav-links">
+            <li><a href="/" class="{{ 'active' if active_page == 'dashboard' }}">Dashboard</a></li>
+            <li><a href="/members" class="{{ 'active' if active_page == 'members' }}">Members</a></li>
+            <li><a href="/plans" class="{{ 'active' if active_page == 'plans' }}">Manage Plans</a></li>
+            <li><a href="/kiosk" target="_blank">Launch Kiosk</a></li>
+            <li><a href="/logout" class="logout-link">Log Out</a></li>
+        </ul>
+    </div>
+    {% endif %}
+    
+    <div class="{{ 'main-content' if not kiosk_mode else '' }}">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div id="premium-toast-container">
+              {% for category, message in messages %}
+                <div class="premium-toast toast-{{ category }}">
+                  <span>{{ message }}</span>
+                  <div style="margin-left:auto; cursor:pointer;" onclick="this.parentElement.remove()">&times;</div>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

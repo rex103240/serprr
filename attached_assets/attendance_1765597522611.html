@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    /* iOS Style Date Picker */
+    .date-picker-container {
+        position: relative;
+    }
+    .ios-date-input {
+        background: #e5e5ea;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 12px;
+        font-family: inherit;
+        font-weight: 600;
+        color: var(--primary);
+        cursor: pointer;
+        outline: none;
+        font-size: 14px;
+        transition: background 0.2s;
+    }
+    .ios-date-input:hover { background: #d1d1d6; }
+
+    /* The List Container */
+    .timeline-card {
+        background: white;
+        border-radius: 18px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        border: 1px solid rgba(0,0,0,0.04);
+        overflow: hidden;
+    }
+
+    /* List Items */
+    .log-item {
+        display: flex;
+        align-items: center;
+        padding: 18px 25px;
+        border-bottom: 1px solid #f2f2f7;
+        transition: background 0.1s;
+    }
+    .log-item:last-child { border-bottom: none; }
+    .log-item:hover { background-color: #fbfbfd; }
+
+    /* Avatar Circle */
+    .avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: 600;
+        font-size: 18px;
+        margin-right: 18px;
+        flex-shrink: 0;
+    }
+    /* Random colors for avatars based on nth-child */
+    .log-item:nth-child(3n+1) .avatar { background: #007AFF; }
+    .log-item:nth-child(3n+2) .avatar { background: #34C759; }
+    .log-item:nth-child(3n+3) .avatar { background: #FF9500; }
+
+    /* Text Hierarchy */
+    .log-info { flex: 1; }
+    .log-name { font-size: 16px; font-weight: 600; color: #1d1d1f; margin-bottom: 3px; }
+    .log-sub { font-size: 13px; color: #86868b; }
+    
+    /* Time Badge */
+    .time-badge {
+        background: #f2f2f7;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #1d1d1f;
+    }
+</style>
+
+<div class="header">
+    <div style="display:flex; flex-direction:column;">
+        <h1 style="margin-bottom:5px;">Attendance History</h1>
+        <span style="color:#86868b; font-size:14px;">Total for selected date: <strong>{{ logs|length }}</strong></span>
+    </div>
+    
+    <div class="date-picker-container">
+        <form action="/attendance" method="GET">
+            <input type="date" name="date" value="{{ selected_date }}" onchange="this.form.submit()" class="ios-date-input">
+        </form>
+    </div>
+</div>
+
+<div class="timeline-card">
+    {% for log in logs %}
+    <div class="log-item">
+        <div class="avatar">{{ log['name'][0] }}</div>
+        
+        <div class="log-info">
+            <div class="log-name">{{ log['name'] }}</div>
+            <div class="log-sub">{{ log['plan_name'] }} • ID: #{{ log['member_id'] }}</div>
+        </div>
+        
+        <div class="time-badge">
+            {{ log['time'] }}
+        </div>
+    </div>
+    {% else %}
+    <div style="padding: 50px; text-align: center; color: #86868b;">
+        <p style="font-size: 18px; font-weight: 500;">No check-ins found.</p>
+        <p style="font-size: 14px;">Select a different date from the picker above.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

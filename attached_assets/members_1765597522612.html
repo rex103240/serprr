@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="header">
+        <h1>Members</h1>
+        <div>
+            <a href="/members/export" class="btn btn-secondary">Export Excel</a>
+            <a href="/members/new" class="btn btn-primary" style="margin-left: 10px;">+ Register</a>
+        </div>
+    </div>
+    <div class="search-container">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search by name, phone..." onkeyup="filterMembers()">
+        <select id="statusFilter" class="filter-select" onchange="filterMembers()">
+            <option value="All">All Status</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+        </select>
+    </div>
+    <div class="card">
+        <table id="membersTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Plan Info</th>
+                    <th>Joined</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for member in members %}
+                <tr>
+                    <td>#{{ member['id'] }}</td>
+                    <td>
+                        <span style="font-weight:600">{{ member['name'] }}</span><br>
+                        <span style="color:#8e8e93; font-size:12px;">{{ member['phone'] }}</span>
+                    </td>
+                    <td>
+                        {{ member['plan_name'] }}<br>
+                        <span style="color:#8e8e93; font-size:12px;">₹{{ member['plan_price'] }}</span>
+                    </td>
+                    <td>{{ member['join_date'] | format_date }}</td>
+                    <td>
+                        <span class="status-badge {{ 'status-active' if member['status'] == 'Active' else 'status-inactive' }}">
+                            {{ member['status'] }}
+                        </span>
+                    </td>
+                    <td>
+                        <button onclick="openRenewModal('{{ member['id'] }}', '{{ member['name'] }}')" class="btn btn-primary btn-sm">Renew</button>
+                        <button onclick="openEditModal('{{ member['id'] }}', '{{ member['name'] }}', '{{ member['phone'] }}', '{{ member['email'] }}', '{{ member['status'] }}', '{{ member['join_date'] }}')" class="btn btn-secondary btn-sm">Edit</button>
+                        <form action="/members/delete/{{ member['id'] }}" method="POST" style="display:inline;" onsubmit="return confirm('Permanently delete {{ member['name'] }}?');">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div id="renewModal" class="modal">
+        <div class="modal-content">
+            <h2 style="text-align: center; margin-bottom: 20px;">Renew Membership</h2>
+            <p style="text-align: center; color: #86868b; margin-bottom: 30px;">Select a new plan for <span id="renewMemberName" style="color:black; font-weight:600;"></span></p>
+            <form id="renewForm" method="POST">
+                <label>Choose Plan</label>
+                <select name="plan_id" required>
+                    {% for plan in plans %}
+                    <option value="{{ plan['id'] }}">{{ plan['name'] }} - ₹{{ plan['price'] }} ({{ plan['duration'] }})</option>
+                    {% endfor %}
+                </select>
+                <div style="display: flex; justify-content: space-between; margin-top: 30px;">
+                    <button type="button" onclick="document.getElementById('renewModal').style.display='none'" class="btn btn-secondary" style="width: 48%;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="width: 48%;">Renew Now</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h2 style="text-align: center; margin-bottom: 20px;">Edit Member</h2>
+            <form id="editForm" method="POST">
+                <label>Full Name</label>
+                <input type="text" id="editName" name="name" required>
+                <label>Phone Number</label>
+                <input type="text" id="editPhone" name="phone" required>
+                <label>Email Address</label>
+                <input type="email" id="editEmail" name="email" required>
+                <label>Joined Date</label>
+                <input type="date" id="editJoinDate" name="join_date" required>
+                <label>Status</label>
+                <select name="status" id="editStatus">
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive (Pause Plan)</option>
+                </select>
+                <div style="display: flex; justify-content: space-between; margin-top: 30px;">
+                    <button type="button" onclick="document.getElementById('editModal').style.display='none'" class="btn btn-secondary" style="width: 48%;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="width: 48%;">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+        function openRenewModal(id, name) {
+            document.getElementById('renewMemberName').innerText = name;
+            document.getElementById('renewForm').action = "/members/renew/" + id;
+            document.getElementById('renewModal').style.display = 'flex';
+        }
+        function openEditModal(id, name, phone, email, status, joinDate) {
+            document.getElementById('editName').value = name;
+            document.getElementById('editPhone').value = phone;
+            document.getElementById('editEmail').value = email;
+            document.getElementById('editStatus').value = status;
+            document.getElementById('editJoinDate').value = joinDate;
+            document.getElementById('editForm').action = "/members/edit/" + id;
+            document.getElementById('editModal').style.display = 'flex';
+        }
+        function filterMembers() {
+            var input = document.getElementById("searchInput").value.toUpperCase();
+            var statusFilter = document.getElementById("statusFilter").value;
+            var table = document.getElementById("membersTable");
+            var tr = table.getElementsByTagName("tr");
+            for (var i = 1; i < tr.length; i++) {
+                var tdName = tr[i].getElementsByTagName("td")[1];
+                var tdStatus = tr[i].getElementsByTagName("td")[4];
+                if (tdName && tdStatus) {
+                    var txtValue = tdName.textContent || tdName.innerText;
+                    var statusValue = tdStatus.textContent || tdStatus.innerText;
+                    var matchesSearch = txtValue.toUpperCase().indexOf(input) > -1;
+                    var matchesStatus = (statusFilter === "All") || (statusValue.trim() === statusFilter);
+                    if (matchesSearch && matchesStatus) { tr[i].style.display = ""; } else { tr[i].style.display = "none"; }
+                }       
+            }
+        }
+        window.onclick = function(event) { if (event.target.classList.contains('modal')) { event.target.style.display = "none"; } }
+    </script>
+{% endblock %}

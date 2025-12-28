@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="header">
+        <h1>New Member</h1>
+    </div>
+    <div class="card" style="max-width: 500px; margin: 0 auto;">
+        <form method="POST">
+            <label>Full Name</label>
+            <input type="text" name="name" required placeholder="Enter full name">
+            <label>Phone Number</label>
+            <input type="text" name="phone" required placeholder="Enter phone number">
+            <label>Email Address</label>
+            <input type="email" name="email" required placeholder="Enter email address">
+            <label>Joining Date</label>
+            <input type="date" name="join_date" required value="{{ today }}">
+            <label>Membership Plan</label>
+            <select name="plan_id" required>
+                {% for plan in plans %}
+                <option value="{{ plan['id'] }}">{{ plan['name'] }} - ₹{{ plan['price'] }}</option>
+                {% endfor %}
+            </select>
+            <div style="margin-top: 30px; display: flex; gap: 10px;">
+                <button type="submit" class="btn btn-primary" style="flex: 2;">Register Member</button>
+                <a href="/members" class="btn btn-secondary" style="flex: 1; text-align: center;">Cancel</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}

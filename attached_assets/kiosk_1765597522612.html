@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IronLifter Kiosk</title>
+    <style>
+        body {
+            background-color: #000000;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* The Exact Card Style from your Screenshot */
+        .kiosk-card {
+            background: #151515; /* Darker grey to match screenshot */
+            padding: 60px 40px;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            box-shadow: 0 0 0 1px #333, 0 20px 40px rgba(0,0,0,0.8);
+        }
+
+        h1 { color: #fff; margin-bottom: 40px; font-weight: 700; font-size: 28px; }
+
+        input {
+            background: #000;
+            border: 1px solid #333;
+            color: white;
+            padding: 18px;
+            font-size: 20px;
+            text-align: center;
+            border-radius: 12px;
+            width: 100%;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            outline: none;
+            transition: all 0.2s;
+        }
+        
+        /* The Blue Glow Focus */
+        input:focus {
+            border-color: #007AFF;
+            box-shadow: 0 0 0 2px rgba(0,122,255,0.3);
+        }
+
+        button {
+            background: #007AFF; /* The bright blue from screenshot */
+            color: white;
+            border: none;
+            padding: 18px;
+            width: 100%;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        button:active { transform: scale(0.98); opacity: 0.9; }
+
+        /* Status Messages */
+        #messageArea { margin-top: 30px; font-weight: 600; min-height: 24px; }
+        .text-success { color: #32D74B; }
+        .text-error { color: #FF453A; }
+
+        /* Full Screen Flash */
+        .flash-green { animation: flashG 0.5s; }
+        .flash-red { animation: flashR 0.5s; }
+        @keyframes flashG { 0% { background: #000; } 50% { background: #0a2a12; } 100% { background: #000; } }
+        @keyframes flashR { 0% { background: #000; } 50% { background: #2a0a0a; } 100% { background: #000; } }
+    </style>
+</head>
+<body>
+    <div class="kiosk-card">
+        <h1>Check In</h1>
+        <form id="checkinForm">
+            <input type="text" id="memberId" placeholder="Enter Member ID" autofocus autocomplete="off">
+            <button type="submit">ENTER GYM</button>
+        </form>
+        <div id="messageArea"></div>
+    </div>
+
+    <script>
+        const API_SECRET = "{{ api_secret }}";
+        const form = document.getElementById('checkinForm');
+        const input = document.getElementById('memberId');
+        const msg = document.getElementById('messageArea');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            msg.innerText = "Processing...";
+            msg.className = "";
+            
+            try {
+                const res = await fetch('/api/checkin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-Kiosk-Secret': API_SECRET },
+                    body: JSON.stringify({member_id: input.value})
+                });
+                const data = await res.json();
+                
+                msg.innerText = data.message || (data.success ? `Welcome, ${data.member_name}` : "Error");
+                msg.className = data.success ? 'text-success' : 'text-error';
+                document.body.className = data.success ? 'flash-green' : 'flash-red';
+                
+                input.value = '';
+                setTimeout(() => { msg.innerText = ''; document.body.className = ''; input.focus(); }, 3000);
+            } catch (err) {
+                msg.innerText = "System Error";
+                msg.className = "text-error";
+            }
+        });
+    </script>
+</body>
+</html>

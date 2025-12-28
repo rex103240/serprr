@@ -1,0 +1,59 @@
+{
+  "timestamp": "20251213_040837",
+  "plans": [
+    {
+      "id": 1,
+      "name": "Monthly Standard",
+      "price": 1500,
+      "duration_days": 30,
+      "description": null,
+      "is_active": true
+    },
+    {
+      "id": 2,
+      "name": "Quarterly Saver",
+      "price": 4000,
+      "duration_days": 90,
+      "description": null,
+      "is_active": true
+    },
+    {
+      "id": 3,
+      "name": "Annual Pro",
+      "price": 12000,
+      "duration_days": 365,
+      "description": null,
+      "is_active": true
+    },
+    {
+      "id": 4,
+      "name": "Daily Pass",
+      "price": 200,
+      "duration_days": 1,
+      "description": null,
+      "is_active": true
+    }
+  ],
+  "members": [],
+  "staff": [
+    {
+      "id": 1,
+      "name": "pl",
+      "phone": "4564564562",
+      "email": "rex@gmail.com",
+      "role": "Trainer",
+      "specialization": "weight training",
+      "salary": 15000,
+      "join_date": "2025-12-13",
+      "status": "Active",
+      "address": "kl",
+      "notes": ""
+    }
+  ],
+  "equipment": [],
+  "transactions": [],
+  "expenses": [],
+  "attendance": [],
+  "measurements": [],
+  "maintenance_logs": []
+}
