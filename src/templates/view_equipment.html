@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .detail-label { color: var(--text-muted); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .detail-value { color: var(--text-main); font-weight: 600; font-size: 15px; }
+    
+    .large-avatar {
+        width: 80px; height: 80px; border-radius: 20px;
+        background: linear-gradient(135deg, var(--accent), var(--indigo));
+        color: white; font-size: 32px; display: flex; align-items: center; justify-content: center;
+        font-weight: 700; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .maintenance-type-badge {
+        background: var(--nav-hover);
+        color: var(--accent);
+        padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;
+        border: 1px solid var(--glass-border);
+    }
+</style>
+
+<div class="page-header mb-4">
+    <div>
+        <a href="{{ url_for('equipment.list_equipment') }}" class="text-muted text-decoration-none small fw-bold">
+            <i class="bi bi-arrow-left me-1"></i> Back to Inventory
+        </a>
+        <h1 class="mt-2 fw-bold" style="color: var(--text-main);">{{ equipment.name }}</h1>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#maintenanceModal" style="background: var(--accent); border:none; color: var(--charcoal);">
+        <i class="bi bi-tools me-2"></i>Log Maintenance
+    </button>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-body text-center p-5">
+                <div class="large-avatar mx-auto">{{ equipment.name[0] | upper }}</div>
+                <h3 class="fw-bold">{{ equipment.name }}</h3>
+                <span class="status-badge {{ 'status-active' if equipment.status == 'Operational' else 'status-inactive' }} mb-4">
+                    {{ equipment.status }}
+                </span>
+                
+                <div class="text-start mt-4 pt-4 border-top" style="border-color: var(--glass-border) !important;">
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="detail-label">Brand</span>
+                        <span class="detail-value">{{ equipment.brand or '-' }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="detail-label">Location</span>
+                        <span class="detail-value">{{ equipment.location or '-' }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="detail-label">Warranty Ends</span>
+                        <span class="detail-value" style="color: var(--warning);">{{ equipment.warranty_expiry or '-' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-header"><h3 class="m-0">Maintenance History</h3></div>
+            <div class="card-body p-0">
+                <table class="table mb-0">
+                    <thead>
+                        <tr><th>Date</th><th>Type</th><th>Cost</th><th>Technician</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for log in maintenance_logs %}
+                        <tr>
+                            <td class="text-muted">{{ log.date }}</td>
+                            <td><span class="maintenance-type-badge">{{ log.type }}</span></td>
+                            <td class="fw-bold" style="color: var(--success);">{{ log.cost | format_currency }}</td>
+                            <td class="text-muted small">{{ log.performed_by or '-' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="maintenanceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: var(--glass-surface); border: 1px solid var(--glass-border); backdrop-filter: blur(16px);">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" style="color: var(--text-main)">Record Maintenance</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('equipment.add_maintenance', id=equipment.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Issue / Task</label>
+                        <input type="text" name="description" class="form-control" required placeholder="e.g. Belt Replacement">
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label text-muted small fw-bold">Cost (₹)</label>
+                            <input type="number" name="cost" class="form-control" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-muted small fw-bold">Date</label>
+                            <input type="date" name="date" class="form-control" value="{{ today }}">
+                        </div>
+                    </div>
+                    <div class="mb-3 mt-3">
+                        <label class="form-label text-muted small fw-bold">Technician Name</label>
+                        <input type="text" name="performed_by" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="submit" class="btn btn-primary w-100" style="background: var(--accent); color: var(--charcoal); border:none;">Save Log</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

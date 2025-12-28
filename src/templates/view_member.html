@@ -1,0 +1,358 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container fade-in">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+        <div class="d-flex align-items-center gap-4">
+            <div class="rounded-circle bg-primary bg-opacity-25 text-primary d-flex align-items-center justify-content-center fw-bold display-4 shadow" 
+                 style="width: 80px; height: 80px; border: 2px solid rgba(255,255,255,0.1);">
+                {{ member.name[0] }}
+            </div>
+            
+            <div>
+                <div class="d-flex align-items-center gap-3">
+                    <h2 class="fw-bold text-white mb-0">{{ member.name }}</h2>
+                    <span class="badge bg-secondary bg-opacity-50 text-white border border-secondary border-opacity-25">
+                        ID: #{{ member.member_code }}
+                    </span>
+                </div>
+                <div class="d-flex gap-3 text-white-50 mt-1">
+                    <span><i class="bi bi-telephone me-1"></i> {{ member.phone }}</span>
+                    <span><i class="bi bi-envelope me-1"></i> {{ member.email or 'No Email' }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('members.list_members') }}" class="btn btn-outline-light">
+                <i class="bi bi-qr-code me-2"></i>Digital ID
+            </a>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editMemberModal">
+                <i class="bi bi-pencil-square me-2"></i>Edit Profile
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card p-4 mb-4">
+                <h5 class="text-white-50 text-uppercase small fw-bold mb-3">Membership Status</h5>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="fs-4 text-white fw-bold">{{ plan.name if plan else 'No Plan' }}</span>
+                    {% if member.status == 'Active' %}
+                        <span class="badge bg-success bg-opacity-25 text-success px-3 py-2">Active</span>
+                    {% else %}
+                        <span class="badge bg-danger bg-opacity-25 text-danger px-3 py-2">{{ member.status }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="p-3 rounded-3 bg-white bg-opacity-5 border border-white border-opacity-10">
+                    <div class="d-flex justify-content-between text-white-50 small mb-1">
+                        <span>Expires On</span>
+                        <span>{{ member.expiry_date.strftime('%d %b, %Y') if member.expiry_date else 'N/A' }}</span>
+                    </div>
+                    {% if member.expiry_date %}
+                        {% set days_total = plan.duration_days if plan else 30 %}
+                        {% set days_left = (member.expiry_date - now().date()).days %}
+                        {% set progress = 100 - ((days_left / days_total) * 100) %}
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar {{ 'bg-danger' if days_left < 7 else 'bg-success' }}" 
+                                 role="progressbar" 
+                                 style="width: {{ progress }}%"></div>
+                        </div>
+                        <div class="text-end text-white-50 small mt-1">{{ days_left }} days left</div>
+                    {% endif %}
+                </div>
+
+                <hr class="border-secondary border-opacity-25 my-4">
+                
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-white-50">Member ID</span>
+                    <span class="text-white fw-bold">#{{ member.member_code }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-white-50">Join Date</span>
+                    <span class="text-white">{{ member.join_date.strftime('%d %b, %Y') }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-white-50">Gender</span>
+                    <span class="text-white">{{ member.gender or 'N/A' }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-white-50">Emergency</span>
+                    <span class="text-white">{{ member.emergency_contact_phone or 'N/A' }}</span>
+                </div>
+            </div>
+            
+            <div class="card p-4">
+                <h5 class="text-white-50 text-uppercase small fw-bold mb-3">Quick Actions</h5>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#renewModal">
+                        <i class="bi bi-credit-card me-2"></i>Renew Membership
+                    </button>
+                    <button class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#measurementModal">
+                        <i class="bi bi-ruler me-2"></i>Record Measurements
+                    </button>
+                    <form action="{{ url_for('members.toggle_status', id=member.id) }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        {% if member.status == 'Active' %}
+                        <button class="btn btn-outline-danger w-100">
+                            <i class="bi bi-pause-circle me-2"></i>Block Access
+                        </button>
+                        {% else %}
+                        <button class="btn btn-outline-primary w-100">
+                            <i class="bi bi-play-circle me-2"></i>Unblock Access
+                        </button>
+                        {% endif %}
+                    </form>
+                    
+                    <hr class="border-secondary border-opacity-25 my-2">
+                    
+                    <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteMemberModal">
+                        <i class="bi bi-trash me-2"></i>Delete Member
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card p-0 overflow-hidden h-100">
+                <div class="card-header border-bottom border-secondary border-opacity-25 bg-white bg-opacity-5">
+                    <ul class="nav nav-tabs card-header-tabs border-0" id="memberTabs" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active text-white bg-transparent border-0" data-bs-toggle="tab" data-bs-target="#measurements">Measurements</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link text-white-50 bg-transparent border-0" data-bs-toggle="tab" data-bs-target="#attendance">Attendance</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link text-white-50 bg-transparent border-0" data-bs-toggle="tab" data-bs-target="#finance">Transactions</button>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="card-body p-0">
+                    <div class="tab-content" id="memberTabContent">
+                        
+                        <div class="tab-pane fade show active p-4" id="measurements">
+                            {% if measurements %}
+                            <div class="table-responsive">
+                                <table class="table table-dark table-hover mb-0 bg-transparent">
+                                    <thead>
+                                        <tr class="text-white-50 small text-uppercase">
+                                            <th>Date</th>
+                                            <th>Weight</th>
+                                            <th>Body Fat</th>
+                                            <th>Note</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-white">
+                                        {% for m in measurements %}
+                                        <tr>
+                                            <td>{{ m.date.strftime('%d %b') }}</td>
+                                            <td>{{ m.weight }} kg</td>
+                                            <td>{{ m.body_fat or '-' }}%</td>
+                                            <td class="text-white-50 small">{{ m.notes or '-' }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-5 text-white-50">
+                                <i class="bi bi-clipboard-data display-1 opacity-25"></i>
+                                <p class="mt-3">No measurements recorded yet.</p>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="tab-pane fade p-4" id="attendance">
+                            <ul class="list-group list-group-flush bg-transparent">
+                                {% for a in recent_attendance %}
+                                <li class="list-group-item bg-transparent text-white border-secondary border-opacity-25 d-flex justify-content-between">
+                                    <span><i class="bi bi-calendar-check me-2 text-success"></i> {{ a.timestamp.strftime('%d %b, %Y') }}</span>
+                                    <span class="text-white-50">{{ a.timestamp.strftime('%I:%M %p') }}</span>
+                                </li>
+                                {% else %}
+                                <li class="list-group-item bg-transparent text-white-50 text-center">No recent check-ins found.</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
+                        <div class="tab-pane fade p-4" id="finance">
+                            {% if transactions %}
+                            <div class="table-responsive">
+                                <table class="table table-dark table-hover mb-0 bg-transparent">
+                                    <thead>
+                                        <tr class="text-white-50 small text-uppercase">
+                                            <th>Date</th>
+                                            <th>Amount</th>
+                                            <th>Type</th>
+                                            <th>Invoice</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-white">
+                                        {% for t in transactions %}
+                                        <tr>
+                                            <td>{{ t.date.strftime('%d %b') }}</td>
+                                            <td class="text-success fw-bold">₹{{ t.amount }}</td>
+                                            <td>{{ t.transaction_type }}</td>
+                                            <td>
+                                                <a href="{{ url_for('members.download_invoice', transaction_id=t.id) }}" class="btn btn-sm btn-outline-light border-0 py-0">
+                                                    <i class="bi bi-download"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-5 text-white-50">
+                                <i class="bi bi-receipt display-1 opacity-25"></i>
+                                <p class="mt-3">No payment history available.</p>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="renewModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title">Renew Membership</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('members.renew_member', id=member.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-white-50">Select New Plan</label>
+                        <select name="plan_id" class="form-select bg-dark text-white border-secondary">
+                            {% for p in plans %}
+                            <option value="{{ p.id }}">{{ p.name }} - ₹{{ p.price }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50">Payment Method</label>
+                        <select name="payment_method" class="form-select bg-dark text-white border-secondary">
+                            <option value="Cash">Cash</option>
+                            <option value="UPI">UPI</option>
+                            <option value="Card">Card</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success">Confirm Renewal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editMemberModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title">Edit Profile</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('members.edit_member', id=member.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-white-50">Full Name</label>
+                        <input type="text" name="name" class="form-control bg-dark text-white border-secondary" value="{{ member.name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50">Phone</label>
+                        <input type="tel" name="phone" class="form-control bg-dark text-white border-secondary" value="{{ member.phone }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50">Email</label>
+                        <input type="email" name="email" class="form-control bg-dark text-white border-secondary" value="{{ member.email }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50">Emergency Contact Name</label>
+                        <input type="text" name="emergency_name" class="form-control bg-dark text-white border-secondary" value="{{ member.emergency_contact_name }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50">Emergency Contact Phone</label>
+                        <input type="tel" name="emergency_phone" class="form-control bg-dark text-white border-secondary" value="{{ member.emergency_contact_phone }}">
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="measurementModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title">Record Measurements</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('members.add_measurement', id=member.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label text-white-50">Weight (kg)</label>
+                            <input type="number" step="0.1" name="weight" class="form-control bg-dark text-white border-secondary">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-white-50">Body Fat (%)</label>
+                            <input type="number" step="0.1" name="body_fat" class="form-control bg-dark text-white border-secondary">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-white-50">Notes</label>
+                            <textarea name="notes" class="form-control bg-dark text-white border-secondary" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning">Save Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteMemberModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-danger">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Delete Member
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="fs-5 mb-2">Are you sure you want to delete <strong>{{ member.name }}</strong>?</p>
+                <p class="text-white-50 small mb-0">This action will permanently remove the member's profile, attendance records, and payment history. This cannot be undone.</p>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('members.delete_member', id=member.id) }}" method="POST" class="m-0">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">Yes, Delete Member</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

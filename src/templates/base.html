@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head> 
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ gym_name }} - Gym Management</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://npmcdn.com/flatpickr/dist/themes/dark.css">    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <style>
+        .sidebar {
+            width: 260px;
+            position: fixed;
+            top: 20px; bottom: 20px; left: 20px;
+            z-index: 1050; /* Higher than content */
+            transition: all 0.3s ease-in-out;
+        }
+        
+        /* Default Desktop Styles for Main Content */
+        .main-content {
+            margin-left: 280px; 
+            width: calc(100% - 280px);
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* Make nav links look like buttons */
+        .nav-link.active {
+            background-color: var(--primary-color) !important;
+            box-shadow: 0 4px 15px rgba(0, 122, 255, 0.4);
+        }
+        .nav-link:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* --- MOBILE FIXES --- */
+        @media (max-width: 768px) {
+            /* Hide sidebar off-screen by default on mobile */
+            .sidebar {
+                left: -280px; 
+                top: 0; bottom: 0;
+                border-radius: 0;
+            }
+            
+            /* Class to show sidebar when toggled */
+            .sidebar.show {
+                left: 0;
+                box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+            }
+
+            /* Main content takes full width */
+            .main-content {
+                margin-left: 0 !important;
+                width: 100% !important;
+                padding-top: 60px; /* Space for the toggle button */
+            }
+            
+            /* Mobile Toggle Button */
+            .mobile-nav-toggle {
+                display: block !important;
+                position: fixed;
+                top: 15px; right: 15px;
+                z-index: 1100;
+            }
+        }
+        
+        .mobile-nav-toggle {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    
+    <button class="btn btn-dark border-secondary mobile-nav-toggle rounded-circle shadow" id="sidebarToggle">
+        <i class="bi bi-list fs-4"></i>
+    </button>
+    
+    <div class="sidebar d-flex flex-column p-3 bg-dark" id="sidebar">
+        <div class="sidebar-brand text-center mb-4 mt-2">
+            <h4 class="fw-bold text-white" style="letter-spacing: 1px;">IRONLIFTER</h4>
+        </div>
+        
+        <ul class="nav nav-pills flex-column mb-auto gap-2">
+            <li class="nav-item">
+                <a href="{{ url_for('main.dashboard') }}" class="nav-link text-white {% if active_page == 'dashboard' %}active{% endif %}">
+                    <i class="bi bi-grid-fill me-2"></i> Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('members.list_members') }}" class="nav-link text-white {% if active_page == 'members' %}active{% endif %}">
+                    <i class="bi bi-people-fill me-2"></i> Members
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('staff.list_staff') }}" class="nav-link text-white {% if active_page == 'staff' %}active{% endif %}">
+                    <i class="bi bi-person-badge me-2"></i> Staff
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('plans.list_plans') }}" class="nav-link text-white {% if active_page == 'plans' %}active{% endif %}">
+                    <i class="bi bi-card-checklist me-2"></i> Plans
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('equipment.list_equipment') }}" class="nav-link text-white {% if active_page == 'equipment' %}active{% endif %}">
+                    <i class="bi bi-dumbbell me-2"></i> Equipment
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('main.attendance') }}" class="nav-link text-white {% if active_page == 'attendance' %}active{% endif %}">
+                    <i class="bi bi-qr-code-scan me-2"></i> Attendance
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('finance.finance_dashboard') }}" class="nav-link text-white {% if active_page == 'finance' %}active{% endif %}">
+                    <i class="bi bi-currency-rupee me-2"></i> Finance
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('reports.analytics') }}" class="nav-link text-white {% if active_page == 'reports' %}active{% endif %}">
+                    <i class="bi bi-graph-up me-2"></i> Reports
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('settings.index') }}" class="nav-link text-white {% if active_page == 'settings' %}active{% endif %}">
+                    <i class="bi bi-gear-fill me-2"></i> Settings
+                </a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer mt-auto pt-3 border-top border-secondary">
+            <a href="{{ url_for('auth.logout') }}" class="d-flex align-items-center text-white text-decoration-none">
+                <i class="bi bi-box-arrow-left me-2"></i> Log Out
+            </a>
+        </div>
+    </div>
+
+    <main class="container-fluid py-4 main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    
+    <script>
+        // --- FIX: Mobile Sidebar Toggle ---
+        document.getElementById('sidebarToggle').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('show');
+        });
+
+        // --- FIX: Form Loading State (Prevent Double Submit) ---
+        // This script runs for EVERY form on the site automatically
+        document.addEventListener('submit', function(e) {
+            const form = e.target;
+            // Find the submit button
+            const submitBtn = form.querySelector('button[type="submit"]');
+            
+            if (submitBtn) {
+                // Disable the button to prevent double-clicks
+                submitBtn.disabled = true;
+                
+                // Store original text
+                const originalText = submitBtn.innerHTML;
+                
+                // Show Spinner
+                submitBtn.innerHTML = `
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    Processing...
+                `;
+                
+                // Optional: Re-enable after 10s in case of error/timeout (improves UX if backend hangs)
+                setTimeout(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                }, 10000);
+            }
+        });
+    </script>
+</body>
+</html>

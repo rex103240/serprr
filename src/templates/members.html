@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* --- 1. HOVER CARD INTELLIGENCE --- */
+    .member-row {
+        position: relative;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .hover-preview-card {
+        opacity: 0;
+        visibility: hidden;
+        position: absolute;
+        left: 280px; 
+        top: 50%;
+        transform: translateY(-50%) scale(0.95);
+        width: 300px;
+        background: rgba(30, 30, 30, 0.95); 
+        backdrop-filter: blur(12px);          
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 16px;
+        padding: 20px;
+        z-index: 9999;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+        pointer-events: none; 
+        transition: all 0.2s ease-out;
+        transition-delay: 0s; 
+    }
+
+    /* DESKTOP ONLY: Add the 0.4s delay so it doesn't flash */
+    @media (hover: hover) {
+        .member-row:hover .hover-preview-card {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(-50%) scale(1);
+            transition-delay: 0.4s; 
+        }
+    }
+    
+    .table-responsive { overflow: visible !important; }
+
+    /* --- 2. HIGH CONTRAST SEARCH BAR --- */
+    .search-container {
+        background: rgba(255, 255, 255, 0.12); /* Brighter background */
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 12px;
+        padding: 10px;
+        transition: all 0.2s ease;
+    }
+
+    .search-container:focus-within {
+        background: rgba(255, 255, 255, 0.18);
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.2);
+    }
+
+    #searchInput {
+        font-weight: 600; 
+        font-size: 1.05rem;
+        letter-spacing: 0.5px;
+        color: #ffffff !important;
+    }
+
+    /* High Visibility Placeholder/Hint Text */
+    #searchInput::placeholder {
+        color: rgba(255, 255, 255, 0.75) !important; /* Bright Grey/White - readable */
+        opacity: 1;
+        font-weight: 500;
+    }
+    
+    .search-icon {
+        color: rgba(255, 255, 255, 0.8) !important;
+    }
+</style>
+
+<div class="container fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-white mb-0">Members</h2>
+            <p class="text-white-50">Manage your gym members</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('members.list_members') }}" class="btn btn-outline-light">
+                <i class="bi bi-download me-1"></i> Export
+            </a>
+            <a href="{{ url_for('members.new_member') }}" class="btn btn-primary fw-bold">
+                <i class="bi bi-plus-lg me-1"></i> New Member
+            </a>
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <div class="search-container d-flex align-items-center">
+            <span class="ps-3 search-icon">
+                <i class="bi bi-search fs-5"></i>
+            </span>
+            <input type="text" id="searchInput" onkeyup="liveSearch()" 
+                   class="form-control bg-transparent border-0 shadow-none ps-3 py-2" 
+                   placeholder="Start typing to search (ID, Name, Phone)..." 
+                   autocomplete="off">
+            
+            <button onclick="clearSearch()" class="btn btn-link text-white text-decoration-none pe-3 opacity-75" type="button">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="card border-secondary"> 
+        <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0">
+                <thead class="bg-dark text-white-50 small text-uppercase">
+                    <tr>
+                        <th class="ps-4">Member</th>
+                        <th>Plan</th>
+                        <th>Join Date</th>
+                        <th>Expiry</th>
+                        <th>Status</th>
+                        </tr>
+                </thead>
+                <tbody id="membersTableBody">
+                    {% include 'member_rows.html' %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div id="paginationControls" class="card-footer bg-transparent border-top border-secondary py-3">
+            {% if pagination.pages > 1 %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mb-0">
+                    <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                        <a class="page-link bg-dark border-secondary text-white" 
+                           href="{{ url_for('members.list_members', page=pagination.prev_num) if pagination.has_prev else '#' }}">Previous</a>
+                    </li>
+                    {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                        {% if page_num %}
+                            <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                                <a class="page-link bg-dark border-secondary text-white {% if page_num == pagination.page %}bg-primary border-primary{% endif %}" 
+                                   href="{{ url_for('members.list_members', page=page_num) }}">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link bg-dark border-secondary text-white-50">...</span></li>
+                        {% endif %}
+                    {% endfor %}
+                    <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                        <a class="page-link bg-dark border-secondary text-white" 
+                           href="{{ url_for('members.list_members', page=pagination.next_num) if pagination.has_next else '#' }}">Next</a>
+                    </li>
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    let searchTimeout;
+
+    function liveSearch() {
+        const query = document.getElementById('searchInput').value;
+        const tableBody = document.getElementById('membersTableBody');
+        
+        // 1. If empty, reload to restore original page state and consistency
+        if (query.length === 0) {
+            // Optional: You can choose to just fetch the live feed, but reloading 
+            // ensures the user returns to their specific page (e.g., Page 2) correctly.
+            // For a smoother "Live" feel, we can just fetch the empty query:
+            // fetch...
+        }
+
+        // 2. Debounce
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            
+            // 3. Fetch from Server
+            fetch(`/members/search?q=${encodeURIComponent(query)}`)
+                .then(response => response.text())
+                .then(html => {
+                    tableBody.innerHTML = html;
+                    // Note: We are NO LONGER hiding the pagination. 
+                    // It will remain visible at all times.
+                })
+                .catch(err => console.error('Search Error:', err));
+                
+        }, 300);
+    }
+
+    function clearSearch() {
+        const input = document.getElementById('searchInput');
+        input.value = '';
+        liveSearch(); 
+        input.focus();
+    }
+</script>
+{% endblock %}

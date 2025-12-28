@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container fade-in">
+    <div class="mb-4">
+        <h2 class="fw-bold text-white mb-0">Analytics & Reports</h2>
+        <p class="text-white-50">Real-time performance metrics</p>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card p-3 text-center border-secondary bg-dark bg-opacity-50 h-100">
+                <div class="text-white-50 small text-uppercase fw-bold mb-2">New Joinees</div>
+                <div class="fs-1 fw-bold text-white">{{ new_members_count }}</div>
+                <div class="small text-success"><i class="bi bi-calendar-event"></i> This Month</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3 text-center border-secondary bg-dark bg-opacity-50 h-100">
+                <div class="text-white-50 small text-uppercase fw-bold mb-2">Renewals</div>
+                <div class="fs-1 fw-bold text-info">{{ renewals_count }}</div>
+                <div class="small text-white-50">Retained (This Month)</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3 text-center border-secondary bg-dark bg-opacity-50 h-100">
+                <div class="text-white-50 small text-uppercase fw-bold mb-2">Dropouts</div>
+                <div class="fs-1 fw-bold text-danger">{{ dropouts_count }}</div>
+                <div class="small text-white-50">Expired (Last 30 Days)</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3 text-center border-secondary bg-dark bg-opacity-50 h-100">
+                <div class="text-white-50 small text-uppercase fw-bold mb-2">Attendance Rate</div>
+                <div class="fs-1 fw-bold text-warning">{{ avg_attendance }}%</div>
+                <div class="small text-white-50">Active Members</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card p-4 h-100 border-secondary bg-dark bg-opacity-50">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="text-white mb-0">Revenue Trends</h5>
+                    
+                    <div class="btn-group bg-dark border border-secondary rounded-3" role="group">
+                        <input type="radio" class="btn-check" name="chartToggle" id="btn1m" autocomplete="off" onclick="updateChart('1m')">
+                        <label class="btn btn-sm btn-outline-secondary text-white-50 border-0" for="btn1m">1M</label>
+
+                        <input type="radio" class="btn-check" name="chartToggle" id="btn3m" autocomplete="off" onclick="updateChart('3m')">
+                        <label class="btn btn-sm btn-outline-secondary text-white-50 border-0" for="btn3m">3M</label>
+
+                        <input type="radio" class="btn-check" name="chartToggle" id="btn6m" autocomplete="off" checked onclick="updateChart('6m')">
+                        <label class="btn btn-sm btn-outline-secondary text-white border-0" for="btn6m">6M</label>
+
+                        <input type="radio" class="btn-check" name="chartToggle" id="btn1y" autocomplete="off" onclick="updateChart('1y')">
+                        <label class="btn btn-sm btn-outline-secondary text-white-50 border-0" for="btn1y">1Y</label>
+                    </div>
+                </div>
+                
+                <div class="chart-container" style="position: relative; height:300px;">
+                    <canvas id="revenueChart"></canvas> 
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card p-4 h-100 border-secondary bg-dark bg-opacity-50">
+                <h5 class="mb-4 text-white">Member Plans</h5>
+                <div class="chart-container" style="position: relative; height:300px; display: flex; justify-content: center;">
+                    <canvas id="planChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // --- 1. CONFIG & COLORS ---
+    const styles = getComputedStyle(document.documentElement);
+    const themeColor = styles.getPropertyValue('--accent').trim() || '#E6AF2E';
+    const primaryColor = styles.getPropertyValue('--primary-color').trim() || '#0d6efd';
+    const textColor = styles.getPropertyValue('--text-muted').trim() || '#6c757d';
+    const gridColor = 'rgba(255, 255, 255, 0.1)';
+
+    // --- 2. DATA PREPARATION ---
+    const dailyData = {{ daily_trends | tojson }};    // Array of 30 days
+    const monthlyData = {{ monthly_trends | tojson }}; // Array of 12 months
+    const planDataRaw = {{ plan_distribution | tojson }};
+
+    // --- 3. REVENUE CHART LOGIC ---
+    let revenueChart;
+
+    function initRevenueChart() {
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        
+        let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, themeColor + '40'); 
+        gradient.addColorStop(1, themeColor + '00'); 
+
+        revenueChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [], 
+                datasets: [{
+                    label: 'Revenue (₹)',
+                    data: [], 
+                    borderColor: themeColor,
+                    backgroundColor: gradient,
+                    borderWidth: 2,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: themeColor,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(0,0,0,0.9)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: 'rgba(255,255,255,0.2)',
+                        borderWidth: 1,
+                        padding: 10
+                    }
+                },
+                scales: {
+                    x: { 
+                        grid: { display: false },
+                        ticks: { color: textColor, maxTicksLimit: 8 }
+                    },
+                    y: { 
+                        grid: { color: gridColor, borderDash: [5, 5] },
+                        ticks: { color: textColor },
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Initialize with default view (6 Months)
+        updateChart('6m');
+    }
+
+    // --- 4. TOGGLE FUNCTION ---
+    window.updateChart = function(timeframe) {
+        if (!revenueChart) return;
+
+        let filteredData = [];
+
+        if (timeframe === '1m') {
+            filteredData = dailyData; // Uses the 30-day array
+        } else if (timeframe === '3m') {
+            filteredData = monthlyData.slice(-3);
+        } else if (timeframe === '6m') {
+            filteredData = monthlyData.slice(-6);
+        } else if (timeframe === '1y') {
+            filteredData = monthlyData; // Uses the full 12-month array
+        }
+
+        // Map data to chart format
+        revenueChart.data.labels = filteredData.map(d => d.label);
+        revenueChart.data.datasets[0].data = filteredData.map(d => d.revenue);
+        revenueChart.update();
+        
+        // Update Button Styling
+        document.querySelectorAll('.btn-check').forEach(btn => {
+            const label = document.querySelector(`label[for="${btn.id}"]`);
+            if(btn.id === 'btn' + timeframe) {
+                label.classList.remove('text-white-50');
+                label.classList.add('text-white', 'active');
+            } else {
+                label.classList.add('text-white-50');
+                label.classList.remove('text-white', 'active');
+            }
+        });
+    };
+
+    // --- 5. PLAN CHART ---
+    function initPlanChart() {
+        const ctxPlan = document.getElementById('planChart');
+        if(ctxPlan) {
+            new Chart(ctxPlan, {
+                type: 'doughnut',
+                data: {
+                    labels: planDataRaw.map(i => i.name),
+                    datasets: [{
+                        data: planDataRaw.map(i => i.count),
+                        backgroundColor: [
+                            themeColor, 
+                            primaryColor, 
+                            '#32D74B', 
+                            '#FF453A', 
+                            '#BF5AF2',
+                            '#FF9F0A'
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { 
+                                color: textColor, 
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initRevenueChart();
+        initPlanChart();
+    });
+</script>
+{% endblock %}

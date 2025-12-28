@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* --- 1212 Premium Scoped Styles --- */
+    .premium-glass-card {
+        background: var(--glass-surface);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        display: flex; flex-direction: column;
+    }
+
+    .premium-card-header {
+        padding: 24px;
+        border-bottom: 1px solid var(--glass-border);
+        background: rgba(125, 125, 125, 0.05);
+    }
+    
+    /* Premium Input Styling */
+    .premium-input {
+        background: var(--input-bg) !important;
+        border: 1px solid var(--glass-border) !important;
+        color: var(--text-main) !important;
+        border-radius: 12px !important;
+        padding: 12px 16px;
+    }
+    .premium-input:focus {
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 0 4px rgba(230, 175, 46, 0.1) !important;
+    }
+
+    /* Table & Status Styling */
+    .premium-table th {
+        text-transform: uppercase;
+        font-size: 11px; font-weight: 700; letter-spacing: 1px;
+        color: var(--text-muted);
+        padding: 18px 24px;
+        border-bottom: 1px solid var(--glass-border);
+    }
+    .premium-table td {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--glass-border);
+        color: var(--text-main);
+    }
+    .premium-table tr:hover td { background: var(--nav-hover); }
+
+    /* Action Icon */
+    .btn-delete-icon {
+        width: 34px; height: 34px;
+        display: inline-flex; align-items: center; justify-content: center;
+        border-radius: 10px; color: var(--danger);
+        background: rgba(255, 69, 58, 0.08);
+        transition: all 0.2s;
+    }
+    .btn-delete-icon:hover { background: var(--danger); color: white; transform: translateY(-2px); }
+</style>
+
+<div class="page-header mb-4">
+    <div>
+        <h1 class="fw-bold" style="color: var(--text-main);">Manage Plans</h1>
+        <p class="text-muted">Configure membership tiers and pricing.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="premium-glass-card">
+            <div class="premium-card-header">
+                <h3 class="m-0 fs-5 fw-bold">Create New Plan</h3>
+            </div>
+            <div class="p-4">
+                <form action="{{ url_for('plans.create_plan') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Plan Name</label>
+                        <input type="text" name="name" class="form-control premium-input" placeholder="e.g. Platinum Annual" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Price (₹)</label>
+                        <input type="number" name="price" class="form-control premium-input" placeholder="2500" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label text-muted small fw-bold">Duration</label>
+                        <div class="d-flex gap-2">
+                            <input type="number" name="duration_value" class="form-control premium-input" required style="flex: 1;">
+                            <select name="duration_unit" class="form-select premium-input" style="flex: 1;">
+                                <option value="1">Days</option>
+                                <option value="30">Months</option>
+                                <option value="365">Years</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-3 fw-bold" style="background: var(--accent); border:none; color: var(--charcoal); border-radius:14px;">
+                        Save Membership Plan
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-8">
+        <div class="premium-glass-card">
+            <div class="premium-card-header">
+                <h3 class="m-0 fs-5 fw-bold">Active Plans</h3>
+            </div>
+            <div class="p-0">
+                <div class="table-responsive">
+                    <table class="premium-table w-100">
+                        <thead>
+                            <tr>
+                                <th>Plan Details</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for plan in plans %}
+                            <tr>
+                                <td>
+                                    <div class="fw-bold">{{ plan.name }}</div>
+                                    <div class="small text-muted">{{ plan.duration_days }} Days Access</div>
+                                </td>
+                                <td class="fw-bold" style="color: var(--success);">{{ plan.price | format_currency }}</td>
+                                <td>
+                                    <span class="status-badge {{ 'status-active' if plan.is_active else 'status-inactive' }}">
+                                        {{ 'Active' if plan.is_active else 'Inactive' }}
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <form action="{{ url_for('plans.delete_plan', id=plan.id) }}" method="POST" onsubmit="return confirm('Delete plan?');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="btn-delete-icon border-0">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

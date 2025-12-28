@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="fw-bold text-white mb-0">Dashboard</h1>
+            <p class="text-white-50">Welcome back, Admin</p>
+        </div>
+        <a href="{{ url_for('members.new_member') }}" class="btn btn-primary px-4 py-2">
+            <i class="bi bi-plus-lg me-2"></i>New Member
+        </a>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <a href="{{ url_for('finance.finance_dashboard') }}" class="card h-100 p-4 text-decoration-none text-white transition-hover">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-3 p-3 bg-success bg-opacity-25 text-success">
+                        <i class="bi bi-currency-rupee fs-4"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="text-white-50 mb-0 text-uppercase small fw-bold">Revenue (Month)</h6>
+                    </div>
+                </div>
+                <h2 class="fw-bold mb-0">₹ {{ current_month_revenue }}</h2>
+            </a>
+        </div>
+
+        <div class="col-md-4">
+            <a href="{{ url_for('main.attendance') }}" class="card h-100 p-4 text-decoration-none text-white transition-hover">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-3 p-3 bg-primary bg-opacity-25 text-primary">
+                        <i class="bi bi-qr-code-scan fs-4"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="text-white-50 mb-0 text-uppercase small fw-bold">Check-ins Today</h6>
+                    </div>
+                </div>
+                <h2 class="fw-bold mb-0">{{ checkins_today }}</h2>
+            </a>
+        </div>
+
+        <div class="col-md-4">
+            <a href="{{ url_for('members.list_members') }}" class="card h-100 p-4 text-decoration-none text-white transition-hover">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-3 p-3 bg-warning bg-opacity-25 text-warning">
+                        <i class="bi bi-people-fill fs-4"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="text-white-50 mb-0 text-uppercase small fw-bold">Active Members</h6>
+                    </div>
+                </div>
+                <h2 class="fw-bold mb-0">{{ active_members }}</h2>
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card h-100 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i> Dues Pending</h5>
+                    <span class="badge bg-danger rounded-pill">{{ upcoming_dues|length }}</span>
+                </div>
+
+                {% if upcoming_dues %}
+                    <div class="d-flex flex-column gap-3">
+                        {% for m in upcoming_dues %}
+                        <div class="d-flex align-items-center p-3 rounded-3" style="background: rgba(255, 255, 255, 0.05);">
+                            <div class="rounded-3 p-2 bg-danger bg-opacity-10 text-danger fw-bold text-center" style="width: 50px;">
+                                {{ m.days_left|abs }}d
+                            </div>
+                            <div class="ms-3 flex-grow-1">
+                                <div class="fw-bold">{{ m.name }}</div>
+                                <div class="small text-danger">Overdue</div>
+                            </div>
+                            <a href="{{ url_for('members.list_members') }}" class="btn btn-sm btn-outline-light">View</a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 text-white-50">
+                        <i class="bi bi-check-circle display-4 mb-3 d-block opacity-25"></i>
+                        All payments clear!
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card h-100 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-activity text-info me-2"></i> Live Floor</h5>
+                </div>
+
+                {% if todays_checkins %}
+                    <div class="d-flex flex-column gap-3">
+                        {% for c in todays_checkins %}
+                        <div class="d-flex align-items-center p-3 rounded-3" style="background: rgba(255, 255, 255, 0.05);">
+                            <div class="text-white-50 small font-monospace me-3">
+                                {{ c.time.split(' ')[0] }}
+                            </div>
+                            <div>
+                                <div class="fw-bold">{{ c.name }}</div>
+                                <div class="small text-white-50">{{ c.plan_name }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 text-white-50">
+                        No check-ins yet today.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Small Polish: Make the cards lift slightly when hovered to indicate clickability */
+    .transition-hover {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .transition-hover:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.3) !important;
+        background-color: rgba(255,255,255,0.03) !important; /* Slight highlight */
+    }
+</style>
+{% endblock %}

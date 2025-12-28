@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice</title>
+    <style>
+        body { font-family: 'Helvetica', 'Arial', sans-serif; color: #333; font-size: 14px; line-height: 1.5; }
+        
+        /* Layout Tables */
+        .w-100 { width: 100%; border-collapse: collapse; }
+        .valign-top { vertical-align: top; }
+        .text-right { text-align: right; }
+        
+        /* Header Styling */
+        .logo { font-size: 24px; font-weight: 900; letter-spacing: 1px; margin-bottom: 5px; }
+        .logo span { color: #D4AF37; }
+        .sub-logo { font-size: 11px; color: #777; text-transform: uppercase; letter-spacing: 2px; }
+
+        .invoice-tag { font-size: 40px; color: #e0e0e0; font-weight: bold; line-height: 1; }
+        .invoice-num { font-size: 12px; font-weight: bold; color: #555; }
+
+        /* Info Section */
+        .box-title { font-size: 10px; color: #999; text-transform: uppercase; font-weight: bold; margin-bottom: 5px; letter-spacing: 1px; }
+        .box-val { font-weight: bold; font-size: 14px; margin-bottom: 2px; }
+        .box-sub { font-size: 12px; color: #555; }
+
+        /* Items Table */
+        .items-table { margin-top: 40px; border-bottom: 2px solid #D4AF37; }
+        .items-table th { background: #111; color: white; padding: 10px 15px; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; text-align: left; }
+        .items-table td { padding: 15px; border-bottom: 1px solid #eee; }
+        
+        .total-section { background: #f9f9f9; }
+        .total-label { font-size: 12px; font-weight: bold; color: #555; text-transform: uppercase; }
+        .total-amount { font-size: 20px; font-weight: 900; color: #D4AF37; }
+    </style>
+</head>
+<body>
+    <table class="w-100" style="margin-bottom: 50px;">
+        <tr>
+            <td class="valign-top">
+                <div class="logo">IRON<span>LIFTER</span></div>
+                <div class="sub-logo">Premium Fitness Center</div>
+            </td>
+            <td class="valign-top text-right">
+                <div class="invoice-tag">INVOICE</div>
+                <div class="invoice-num">#{{ transaction.invoice_number }}</div>
+            </td>
+        </tr>
+    </table>
+
+    <table class="w-100" style="margin-bottom: 40px;">
+        <tr>
+            <td width="50%" class="valign-top">
+                <div class="box-title">Billed To</div>
+                <div class="box-val">{{ member.name }}</div>
+                <div class="box-sub">{{ member.email }}</div>
+                <div class="box-sub">{{ member.phone }}</div>
+            </td>
+            <td width="50%" class="valign-top text-right">
+                <div class="box-title">Details</div>
+                <div class="box-val">{{ transaction.date.strftime('%d %b, %Y') }}</div>
+                <div class="box-sub">Method: {{ transaction.payment_method }}</div>
+                <div class="box-sub" style="color: green; font-weight: bold;">Status: PAID</div>
+            </td>
+        </tr>
+    </table>
+
+    <table class="w-100 items-table">
+        <tr>
+            <th width="60%">Description</th>
+            <th width="20%">Duration</th>
+            <th width="20%" class="text-right">Amount</th>
+        </tr>
+        <tr>
+            <td>
+                <div style="font-weight: bold; font-size: 14px;">{{ plan.name }} Membership</div>
+                <div style="font-size: 11px; color: #666; margin-top: 4px;">Access to all gym facilities</div>
+            </td>
+            <td>{{ plan.duration_days }} Days</td>
+            <td class="text-right">₹{{ transaction.amount }}</td>
+        </tr>
+        <tr class="total-section">
+            <td colspan="2" class="text-right" style="padding: 20px;">
+                <span class="total-label">Grand Total</span>
+            </td>
+            <td class="text-right" style="padding: 20px;">
+                <span class="total-amount">₹{{ transaction.amount }}</span>
+            </td>
+        </tr>
+    </table>
+
+    <div style="margin-top: 60px; text-align: center; font-size: 11px; color: #aaa;">
+        Thank you for choosing IronLifter Gym.
+    </div>
+</body>
+</html>

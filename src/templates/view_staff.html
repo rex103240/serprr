@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header mb-4 fade-in">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <a href="{{ url_for('staff.list_staff') }}" class="btn btn-outline-light btn-sm mb-2">
+                <i class="bi bi-arrow-left me-1"></i> Back to Staff
+            </a>
+            <h1 class="fw-bold text-white mb-0">{{ staff.name }}</h1>
+            <p class="text-primary fw-bold mb-0">{{ staff.role }}</p>
+        </div>
+        
+        <div class="d-flex gap-2 align-items-center">
+            {% if staff.status == 'Inactive' %}
+                <form action="{{ url_for('staff.reactivate_staff', id=staff.id) }}" method="POST" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" class="btn btn-success shadow-sm">
+                        <i class="bi bi-person-check-fill me-2"></i>Reactivate Account
+                    </button>
+                </form>
+            {% else %}
+                <form action="{{ url_for('staff.set_leave', id=staff.id) }}" method="POST" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" class="btn {% if staff.status == 'On Leave' %}btn-success{% else %}btn-warning text-dark fw-bold{% endif %}">
+                        <i class="bi {% if staff.status == 'On Leave' %}bi-play-fill{% else %}bi-pause-fill{% endif %} me-1"></i>
+                        {{ 'End Leave' if staff.status == 'On Leave' else 'Set On Leave' }}
+                    </button>
+                </form>
+
+                <form action="{{ url_for('staff.deactivate_staff', id=staff.id) }}" method="POST" class="d-inline" onsubmit="return confirm('DEACTIVATE: This will disable this staff members login access immediately. Proceed?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" class="btn btn-danger fw-bold">
+                        <i class="bi bi-person-x-fill me-1"></i>Deactivate
+                    </button>
+                </form>
+            {% endif %}
+
+            <div class="vr mx-2 bg-secondary opacity-50"></div>
+
+            <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#salaryModal">
+                <i class="bi bi-cash-stack me-2"></i>Pay Salary
+            </button>
+            
+            <button class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#editModal">
+                <i class="bi bi-pencil me-2"></i>Edit
+            </button>
+
+            <form action="{{ url_for('staff.delete_staff', id=staff.id) }}" method="POST" onsubmit="return confirm('PERMANENT DELETE: This removes all history and records. This cannot be undone.');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="btn btn-outline-danger btn-sm opacity-75">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 fade-in">
+    <div class="col-md-4">
+        <div class="card bg-dark border-secondary p-4 h-100 shadow">
+            <h5 class="text-white mb-3 small text-uppercase fw-bold border-bottom border-secondary pb-2">Contact Info</h5>
+            <ul class="list-unstyled text-white">
+                <li class="mb-3 d-flex align-items-center">
+                    <i class="bi bi-phone me-3 text-primary fs-5"></i>
+                    <span class="fs-5">{{ staff.phone }}</span>
+                </li>
+                <li class="mb-3 d-flex align-items-center">
+                    <i class="bi bi-envelope me-3 text-primary fs-5"></i>
+                    <span>{{ staff.email or 'No email' }}</span>
+                </li>
+            </ul>
+            
+            <h5 class="text-white mb-3 small text-uppercase fw-bold border-bottom border-secondary pb-2 mt-4">Employment Data</h5>
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-light opacity-75">Account Status</span>
+                <span class="badge {% if staff.status == 'Active' %}bg-success{% elif staff.status == 'On Leave' %}bg-warning text-dark{% else %}bg-danger{% endif %} shadow-sm">
+                    {{ staff.status }}
+                </span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-light opacity-75">Monthly Base Salary</span>
+                <span class="fw-bold text-success fs-5">₹{{ staff.salary }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-light opacity-75">Joined Date</span>
+                <span class="text-white">{{ staff.hire_date.strftime('%d %b %Y') if staff.hire_date else 'N/A' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card bg-dark border-secondary h-100 shadow">
+            <div class="card-header border-secondary bg-transparent py-3">
+                <h5 class="m-0 text-white"><i class="bi bi-clock-history me-2 text-primary"></i>Salary Payment History</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle mb-0">
+                    <thead class="text-light opacity-50 small text-uppercase">
+                        <tr>
+                            <th class="ps-3">Date</th>
+                            <th>Description / Note</th>
+                            <th class="text-end pe-3">Amount Paid</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in payments %}
+                       <tr>
+                        <td class="ps-3 text-white">{{ payment.payment_date.strftime('%d %b %Y') }}</td>
+                        <td class="text-white-50">{{ payment.notes or 'Monthly Salary' }}</td>
+                        <td class="text-end pe-3 fw-bold text-success">₹{{ payment.amount }}</td>
+                       </tr>
+                        {% else %}
+                        <tr><td colspan="3" class="text-center py-5 text-white opacity-50">No salary records found for this staff member.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark border-secondary shadow-lg">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-white">Edit Staff Profile</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('staff.edit_staff', id=staff.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small fw-bold">Full Name</label>
+                        <input type="text" name="name" class="form-control bg-dark text-white border-secondary" value="{{ staff.name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small fw-bold">Email Address</label>
+                        <input type="email" name="email" class="form-control bg-dark text-white border-secondary" value="{{ staff.email }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small fw-bold">Phone Number</label>
+                        <input type="text" name="phone" class="form-control bg-dark text-white border-secondary" value="{{ staff.phone }}">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-white-50 small fw-bold">Current Role</label>
+                            <input type="text" name="position" class="form-control bg-dark text-white border-secondary" value="{{ staff.position }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-white-50 small fw-bold">Base Salary (₹)</label>
+                            <input type="number" name="salary" class="form-control bg-dark text-white border-secondary" value="{{ staff.salary }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-link text-white-50 text-decoration-none" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary px-4">Update Profile</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="salaryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark border-secondary shadow-lg">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-white">Process Monthly Salary</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('staff.add_salary', id=staff.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small fw-bold">Confirm Payment Amount (₹)</label>
+                        <input type="number" name="amount" class="form-control bg-dark text-white border-secondary" value="{{ staff.salary }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small fw-bold">Payment Date</label>
+                        <input type="date" name="payment_date" class="form-control bg-dark text-white border-secondary" value="{{ now.strftime('%Y-%m-%d') if now else '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small fw-bold">Optional Notes</label>
+                        <input type="text" name="notes" class="form-control bg-dark text-white border-secondary" placeholder="e.g. Performance Bonus Included">
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-link text-white-50 text-decoration-none" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success fw-bold">Record Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

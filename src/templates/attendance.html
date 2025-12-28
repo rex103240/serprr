@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid px-4 fade-in">
+    <div class="row g-4 mt-2">
+        <div class="col-md-4">
+            <div class="glass-panel d-flex flex-column">
+                <h4 class="fw-bold text-white mb-4 border-bottom border-white border-opacity-10 pb-3">
+                    <i class="bi bi-qr-code me-2"></i>Check-in
+                </h4>
+                
+                <form action="{{ url_for('main.checkin_manual') }}" method="POST" class="flex-grow-1">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    
+                    <div class="mb-4">
+                        <label class="form-label text-white-50 text-uppercase small fw-bold">Member ID / Phone</label>
+                        <input type="text" name="identifier" class="form-control form-control-lg" placeholder="Enter ID..." required autofocus>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100 py-3 fw-bold rounded-pill shadow-lg hover-scale">
+                        Check In Now
+                    </button>
+                </form>
+                
+                <div class="mt-4 pt-4 border-top border-white border-opacity-10">
+                    <a href="{{ url_for('main.kiosk_mode') }}" target="_blank" class="btn btn-outline-light w-100 py-2 rounded-pill opacity-75">
+                        <i class="bi bi-tablet me-2"></i>Launch Kiosk Mode
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="glass-panel p-0 overflow-hidden h-100">
+                <div class="p-4 border-bottom border-white border-opacity-10 bg-white bg-opacity-5 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-white fw-bold">Activity Log</h5>
+                    
+                    <form action="{{ url_for('main.attendance') }}" method="GET">
+                        <div class="input-group input-group-sm" style="width: 200px;">
+                            <span class="input-group-text bg-transparent border-white border-opacity-10 text-white">
+                                <i class="bi bi-calendar-event"></i>
+                            </span>
+                            <input type="text" 
+                                   id="attendanceDate"
+                                   name="date" 
+                                   class="form-control border-white border-opacity-10 text-white text-center" 
+                                   value="{{ selected_date }}"
+                                   style="background: rgba(0,0,0,0.2) !important;">
+                        </div>
+                    </form>
+                </div>
+
+                <div class="table-responsive p-2">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="text-white-50 small text-uppercase">
+                            <tr>
+                                <th class="ps-4">Time</th>
+                                <th>Member</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in logs %}
+                            <tr>
+                                <td class="ps-4 text-white-50 font-monospace">
+                                    {{ log.timestamp.strftime('%H:%M') }}
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-white">{{ log.member_name }}</div>
+                                    <div class="small text-white-50">{{ log.plan_name }}</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 rounded-pill px-3">
+                                        Checked In
+                                    </span>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center py-5 text-white-50">
+                                    <i class="bi bi-clock-history display-1 opacity-10 mb-3 d-block"></i>
+                                    No check-ins found for this date.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        flatpickr("#attendanceDate", {
+            dateFormat: "Y-m-d",
+            defaultDate: "{{ selected_date }}",
+            theme: "dark",
+            maxDate: "today",
+            onChange: function(selectedDates, dateStr, instance) {
+                instance.element.form.submit();
+            }
+        });
+    });
+</script>
+{% endblock %}

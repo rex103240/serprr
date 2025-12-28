@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>IronLifter Kiosk</title>
+    <style>
+        body {
+            /* Subtle iOS-style gradient background */
+            background: radial-gradient(circle at top, #1b2838 0%, #050509 55%, #000000 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Soft ambient glow circles */
+        .ambient-glow {
+            position: absolute;
+            width: 520px;
+            height: 520px;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.22;
+            z-index: 0;
+        }
+        .ambient-glow.blue {
+            background: #0a84ff;
+            top: -140px;
+            left: -60px;
+        }
+        .ambient-glow.pink {
+            background: #ff375f;
+            bottom: -160px;
+            right: -40px;
+        }
+
+        /* Full-screen overlay for bright alerts */
+        .kiosk-overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            font-size: 32px;
+            font-weight: 800;
+            text-align: center;
+            padding: 20px;
+            opacity: 0;
+            transform: scale(1.02);
+            pointer-events: none;
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+        .kiosk-overlay-visible {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+        .kiosk-overlay-success {
+            background: radial-gradient(circle at top, #bbffbf 0%, #40d361 35%, #1b7f2b 100%);
+            color: #000;
+        }
+        .kiosk-overlay-error {
+            background: radial-gradient(circle at top, #ffd1d1 0%, #ff3b30 40%, #b01313 100%);
+            color: #000;
+        }
+        .kiosk-overlay-grace {
+            background: radial-gradient(circle at top, #ffe9c2 0%, #ff9f0a 40%, #b85a00 100%);
+            color: #1a1300;
+        }
+        .kiosk-overlay span.plan-text {
+            display: block;
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        .kiosk-overlay span.extra-text {
+            display: block;
+            font-size: 16px;
+            margin-top: 6px;
+        }
+
+        /* Glassmorphism card */
+        .kiosk-card {
+            position: relative;
+            z-index: 1;
+            background: rgba(15, 15, 15, 0.84);
+            padding: 52px 40px 40px;
+            border-radius: 28px;
+            width: 100%;
+            max-width: 440px;
+            text-align: center;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.85);
+            backdrop-filter: blur(28px) saturate(140%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            animation: cardFadeIn 0.6s ease-out;
+        }
+
+        .kiosk-title {
+            color: #ffffff;
+            margin-bottom: 6px;
+            font-weight: 700;
+            font-size: 26px;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            font-family: 'Montserrat', -apple-system, system-ui, sans-serif;
+        }
+        .kiosk-subtitle {
+            color: rgba(255,255,255,0.55);
+            font-size: 12px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 26px;
+        }
+
+        input {
+            background: rgba(0, 0, 0, 0.75);
+            border: 1px solid rgba(120, 120, 120, 0.6);
+            color: white;
+            padding: 18px 18px 16px;
+            font-size: 22px;
+            text-align: center;
+            border-radius: 14px;
+            width: 100%;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        input::placeholder {
+            color: rgba(255,255,255,0.35);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+        
+        /* The Blue Glow Focus */
+        input:focus {
+            border-color: #0a84ff;
+            box-shadow: 0 0 0 2px rgba(10,132,255,0.55);
+            transform: translateY(-1px);
+        }
+
+        button {
+            background: linear-gradient(135deg, #0a84ff, #5e5ce6);
+            color: white;
+            border: none;
+            padding: 16px;
+            width: 100%;
+            border-radius: 999px;
+            font-size: 14px;
+            letter-spacing: 0.12em;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: transform 0.11s ease, box-shadow 0.11s ease, opacity 0.11s ease;
+            box-shadow: 0 10px 30px rgba(10,132,255,0.45);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        button:active { transform: translateY(1px) scale(0.99); opacity: 0.9; box-shadow: 0 4px 16px rgba(0,0,0,0.6); }
+
+        .spinner-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: white;
+            opacity: 0;
+            animation: spinnerDot 0.9s linear infinite;
+        }
+
+        .status-pill {
+            margin-top: 18px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.6);
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #32D74B;
+            box-shadow: 0 0 8px rgba(50,215,75,0.9);
+            animation: pulseDot 1.1s ease-in-out infinite;
+        }
+
+        /* Status Messages */
+        #messageArea { margin-top: 10px; font-weight: 600; min-height: 24px; font-size: 13px; }
+        .text-success { color: #d1f7d4; }
+        .text-error { color: #ffd0d0; }
+
+        /* Subtle entrance + pulse animations */
+        @keyframes cardFadeIn {
+            from { opacity: 0; transform: translateY(16px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes spinnerDot {
+            0% { opacity: 0; transform: scale(0.6); }
+            30% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.6); }
+        }
+        @keyframes pulseDot {
+            0% { transform: scale(0.9); opacity: 0.7; }
+            50% { transform: scale(1.15); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.7; }
+        }
+    </style>
+</head>
+<body>
+    <div class="ambient-glow blue"></div>
+    <div class="ambient-glow pink"></div>
+
+    <div id="kioskOverlay" class="kiosk-overlay">
+        <div>
+            <div id="overlayMainText"></div>
+            <span id="overlayPlanText" class="plan-text"></span>
+            <span id="overlayExtraText" class="extra-text"></span>
+        </div>
+    </div>
+
+    <div class="kiosk-card">
+        <div class="kiosk-title">IRONLIFTER</div>
+        <div class="kiosk-subtitle">MEMBER CHECK-IN</div>
+
+        <form id="checkinForm">
+            <input type="text" id="memberId" placeholder="Member ID or Phone" autofocus autocomplete="off">
+            <button type="submit" id="submitBtn">
+                <span id="btnLabel">ENTER GYM</span>
+                <span class="spinner-dot" id="btnSpinner" style="display:none;"></span>
+            </button>
+        </form>
+
+        <div id="messageArea"></div>
+
+        <div class="status-pill">
+            <div class="status-dot"></div>
+            <span>Ready for next member</span>
+        </div>
+    </div>
+
+    <script>
+        const API_SECRET = "{{ api_secret }}";
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const form = document.getElementById('checkinForm');
+        const input = document.getElementById('memberId');
+        const msg = document.getElementById('messageArea');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnLabel = document.getElementById('btnLabel');
+        const btnSpinner = document.getElementById('btnSpinner');
+        const overlay = document.getElementById('kioskOverlay');
+        const overlayMainText = document.getElementById('overlayMainText');
+        const overlayPlanText = document.getElementById('overlayPlanText');
+        const overlayExtraText = document.getElementById('overlayExtraText');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!input.value.trim()) {
+                msg.innerText = "Please enter Member ID or Phone";
+                msg.className = "text-error";
+                return;
+            }
+
+            msg.innerText = "Verifying...";
+            msg.className = "";
+            submitBtn.disabled = true;
+            btnLabel.textContent = "CHECKING";
+            btnSpinner.style.display = 'inline-block';
+            
+            try {
+                const res = await fetch('/api/checkin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                        'X-Kiosk-Secret': API_SECRET
+                    },
+                    body: JSON.stringify({member_id: input.value})
+                });
+                const data = await res.json();
+                
+                // Small status line in card
+                msg.innerText = data.message || (data.success ? `Welcome, ${data.member_name}` : "Error");
+                msg.className = data.success ? 'text-success' : 'text-error';
+                
+                // Full-screen bright overlay with 3 states: success, grace, error
+                const state = data.status || (data.success ? 'ok' : 'blocked');
+                let overlayStateClass = 'kiosk-overlay-success';
+                if (!data.success || state === 'blocked') {
+                    overlayStateClass = 'kiosk-overlay-error';
+                } else if (state === 'grace') {
+                    overlayStateClass = 'kiosk-overlay-grace';
+                }
+
+                overlay.className = `kiosk-overlay kiosk-overlay-visible ${overlayStateClass}`;
+                overlayMainText.textContent = data.member_name ? data.member_name.toUpperCase() : (data.success ? 'ACCESS GRANTED' : 'ACCESS DENIED');
+                overlayPlanText.textContent = data.plan ? `Plan: ${data.plan}` : '';
+                overlayExtraText.textContent = data.due_warning || '';
+                
+                input.value = '';
+                setTimeout(() => { 
+                    msg.innerText = ''; 
+                    overlay.classList.remove('kiosk-overlay-visible');
+                    submitBtn.disabled = false;
+                    btnLabel.textContent = "ENTER GYM";
+                    btnSpinner.style.display = 'none';
+                    input.focus(); 
+                }, 3000);
+            } catch (err) {
+                msg.innerText = "System Error";
+                msg.className = "text-error";
+                submitBtn.disabled = false;
+                btnLabel.textContent = "ENTER GYM";
+                btnSpinner.style.display = 'none';
+            }
+        });
+
+        window.onload = () => input.focus();
+    </script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-white mb-0">Equipment Inventory</h2>
+            <p class="text-white-50">Track machines and maintenance</p>
+        </div>
+        <a href="{{ url_for('equipment.new_equipment') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-2"></i>Add Equipment
+        </a>
+    </div>
+
+    <div class="card p-0 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light bg-opacity-10 text-white-50 small text-uppercase">
+                    <tr>
+                        <th class="ps-4">Name</th>
+                        <th>Category</th>
+                        <th>Purchase Date</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for e in equipment %}
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td class="ps-4 fw-bold text-white">{{ e.name }}</td>
+                        <td class="text-white-50">{{ e.category }}</td>
+                        <td class="text-white-50">{{ e.purchase_date }}</td>
+                        <td>
+                            {% if e.status == 'Operational' or e.status == 'Working' %}
+                                <span class="badge bg-success bg-opacity-25 text-success">Operational</span>
+                            {% elif e.status == 'Maintenance' %}
+                                <span class="badge bg-warning bg-opacity-25 text-warning">In Maintenance</span>
+                            {% else %}
+                                <span class="badge bg-danger bg-opacity-25 text-danger">{{ e.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="{{ url_for('equipment.view_equipment', id=e.id) }}" class="btn btn-sm btn-outline-light border-0" title="Edit/View">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+
+                                <form action="{{ url_for('equipment.toggle_status', id=e.id) }}" method="POST" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    
+                                    {% if e.status == 'Operational' or e.status == 'Working' %}
+                                        <button type="submit" class="btn btn-sm btn-outline-warning border-0" title="Send to Maintenance">
+                                            <i class="bi bi-tools"></i>
+                                        </button>
+                                    {% else %}
+                                        <button type="submit" class="btn btn-sm btn-outline-success border-0" title="Mark as Fixed">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                        </button>
+                                    {% endif %}
+                                </form>
+                                
+                                <form action="{{ url_for('equipment.delete_equipment', id=e.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this asset?');" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button class="btn btn-sm btn-outline-danger border-0" title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

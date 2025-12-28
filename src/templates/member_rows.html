@@ -1,0 +1,82 @@
+{% for m in members %}
+<tr class="member-row" onclick="window.location='{{ url_for('members.view_member', id=m.id) }}'">
+    
+    <td class="ps-4 position-relative">
+        <div class="d-flex align-items-center">
+            {% if m.photo_path %}
+            <img src="{{ url_for('static', filename='uploads/members/' + m.photo_path) }}" class="rounded-circle me-3" width="40" height="40" style="object-fit: cover;">
+            {% else %}
+            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                <i class="bi bi-person-fill text-white"></i>
+            </div>
+            {% endif %}
+            <div>
+                <div class="fw-bold text-white text-truncate" style="max-width: 200px;">{{ m.name }}</div>
+                <div class="small text-white-50">{{ m.phone }}</div>
+                <div class="small text-white-50" style="opacity: 0.65;">ID&nbsp;#{{ m.code }}</div>
+            </div>
+        </div>
+
+        <div class="hover-preview-card text-center">
+            {% if m.photo_path %}
+            <img src="{{ url_for('static', filename='uploads/members/' + m.photo_path) }}" class="rounded-circle mb-3 border border-2 border-primary" width="80" height="80" style="object-fit: cover;">
+            {% else %}
+            <div class="rounded-circle bg-dark border border-secondary d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                <i class="bi bi-person-fill display-4 text-secondary"></i>
+            </div>
+            {% endif %}
+            
+            <h5 class="fw-bold text-white mb-1">{{ m.name }}</h5>
+            <p class="text-primary small mb-3">{{ m.plan_name }} Plan</p>
+            
+            <div class="row g-2 small text-white-50 mb-3">
+                <div class="col-6 text-end border-end border-secondary pe-2">
+                    Joined<br>
+                    <span class="text-white">{{ m.join_date.strftime('%d %b') }}</span>
+                </div>
+                <div class="col-6 text-start ps-2">
+                    Expires<br>
+                    <span class="text-white">{{ m.expiry_date.strftime('%d %b') }}</span>
+                </div>
+            </div>
+
+            <div class="badge {{ 'bg-success' if m.status == 'Active' else 'bg-danger' }} w-100 py-2">
+                {{ m.status }} Member
+            </div>
+        </div>
+    </td>
+
+    <td>
+        <span class="badge bg-secondary bg-opacity-25 text-white-50 border border-secondary border-opacity-25">
+            {{ m.plan_name }}
+        </span>
+    </td>
+    <td class="text-white-50 small">{{ m.join_date.strftime('%d %b %Y') }}</td>
+    <td>
+        {% if m.days_left < 0 %}
+            <span class="text-danger fw-bold small">Expired</span>
+        {% elif m.days_left <= 5 %}
+            <span class="text-warning fw-bold small">{{ m.days_left }} Days Left</span>
+        {% else %}
+            <span class="text-success small">{{ m.days_left }} Days Left</span>
+        {% endif %}
+        <div class="small text-white-50">{{ m.expiry_date.strftime('%d %b %Y') }}</div>
+    </td>
+    <td>
+        {% if m.status == 'Active' %}
+            <span class="badge bg-success bg-opacity-10 text-success">Active</span>
+        {% else %}
+            <span class="badge bg-danger bg-opacity-10 text-danger">Inactive</span>
+        {% endif %}
+    </td>
+    </tr>
+{% else %}
+<tr>
+    <td colspan="5" class="text-center py-5"> <div class="d-flex flex-column align-items-center justify-content-center opacity-50">
+            <i class="bi bi-search display-1 mb-3"></i>
+            <h4 class="text-white">No members found</h4>
+            <p class="text-white-50">Try searching by ID, Name, or Phone Number</p>
+        </div>
+    </td>
+</tr>
+{% endfor %}
